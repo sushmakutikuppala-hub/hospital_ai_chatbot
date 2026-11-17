@@ -210,4 +210,4 @@ class HospitalKnowledgeRetriever:
             "is_appointment": is_appointment
         }
 
-retriever_instance = HospitalKnowledgeRetriever()
+

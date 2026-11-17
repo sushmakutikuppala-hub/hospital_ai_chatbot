@@ -31,6 +31,9 @@ from rag.retriever import HospitalKnowledgeRetriever
 from rag.generator import generate_llm_response
 from reports.analyzer import analyze_medical_report
 
+
+# Global retriever instance
+retriever_instance = None
 # Lifespan event for automatic database initialization and seeding
 @asynccontextmanager
 async def lifespan(app: FastAPI):
