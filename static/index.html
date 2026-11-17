@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CareWell Hospital - AI Virtual Receptionist & Clinical Portal</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Markdown parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>
+  <body>
+    <!-- ==================== 1. MANDATORY AUTH GATE (POST-LOGIN ACCESS ONLY) ==================== -->
+    <div class="auth-page-wrapper" id="authGate">
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <div class="auth-hospital-logo">
+            <i data-lucide="cross"></i>
+          </div>
+          <h2>CareWell Hospital Portal</h2>
+          <p>Virtual Receptionist, Doctor Directory & Medical Report AI</p>
+          <div class="auth-access-pill">
+            <i data-lucide="lock" style="width: 13px; height: 13px"></i>
+            <span>Authorized Patient Access Only</span>
+          </div>
+        </div>
+
+        <div class="auth-card-body">
+          <!-- Auth Tabs -->
+          <div class="auth-tabs">
+            <button class="auth-tab-btn active" id="tabLoginBtn">
+              Sign In
+            </button>
+            <button class="auth-tab-btn" id="tabRegisterBtn">
+              Create Account
+            </button>
+          </div>
+
+          <!-- Alert messages -->
+          <div id="authAlert" class="auth-alert"></div>
+
+          <!-- Login Form -->
+          <form id="loginForm">
+            <div class="form-group">
+              <label>Gmail Address *</label>
+              <input
+                type="email"
+                id="loginEmail"
+                class="form-control"
+                placeholder="yourname@gmail.com"
+                required
+                autocomplete="username"
+              />
+              <div class="form-hint">
+                🔒 Login domain is strictly limited to
+                <strong>@gmail.com</strong>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Password *</label>
+              <input
+                type="password"
+                id="loginPassword"
+                class="form-control"
+                placeholder="••••••••"
+                required
+                autocomplete="current-password"
+              />
+            </div>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              style="
+                width: 100%;
+                justify-content: center;
+                padding: 11px;
+                margin-top: 8px;
+                font-size: 13.5px;
+              "
+            >
+              <i data-lucide="log-in" style="width: 16px; height: 16px"></i>
+              Sign In & Open Hospital Desk
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="registerForm" style="display: none">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input
+                type="text"
+                id="regFullName"
+                class="form-control"
+                placeholder="e.g. Ramesh Patel"
+              />
+            </div>
+            <div class="form-group">
+              <label>Gmail Address *</label>
+              <input
+                type="email"
+                id="regEmail"
+                class="form-control"
+                placeholder="yourname@gmail.com"
+                required
+                autocomplete="username"
+              />
+              <div class="form-hint">
+                🔒 Only <strong>@gmail.com</strong> addresses permitted.
+                Existing accounts cannot re-register.
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Create Password *</label>
+              <input
+                type="password"
+                id="regPassword"
+                class="form-control"
+                placeholder="Minimum 4 characters"
+                minlength="4"
+                required
+                autocomplete="new-password"
+              />
+            </div>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              style="
+                width: 100%;
+                justify-content: center;
+                padding: 11px;
+                margin-top: 8px;
+                font-size: 13.5px;
+              "
+            >
+              <i data-lucide="user-plus" style="width: 16px; height: 16px"></i>
+              Register with Gmail & Enter
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. MAIN HOSPITAL APPLICATION (OPEN ONLY POST-LOGIN) ==================== -->
+    <div class="app-container" id="appMain" style="display: none">
+      <!-- Top Hospital Header -->
+      <header class="hospital-header">
+        <div class="brand-wrapper">
+          <div class="brand-logo">
+            <i data-lucide="cross"></i>
+          </div>
+          <div class="brand-info">
+            <h1>
+              CareWell Hospital
+              <span class="status-badge">
+                <span class="pulse-dot"></span>
+                Reception Online
+              </span>
+            </h1>
+            <p>AI Virtual Receptionist & Diagnostic Helpdesk</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Medical Report Analysis Button -->
+          <button
+            class="btn btn-report"
+            id="openReportModalBtn"
+            title="Upload and Analyze Medical Lab Report"
+          >
+            <i data-lucide="file-text" style="width: 15px; height: 15px"></i>
+            <span>Analyze Report</span>
+          </button>
+
+          <button
+            class="btn btn-emergency"
+            id="emergencyBtn"
+            title="24/7 Emergency Contacts"
+          >
+            <i data-lucide="phone-call" style="width: 15px; height: 15px"></i>
+            <span>Emergency 24/7</span>
+          </button>
+
+          <button
+            class="btn btn-outline"
+            id="doctorsDirBtn"
+            title="View Doctors Directory"
+          >
+            <i data-lucide="stethoscope" style="width: 15px; height: 15px"></i>
+            <span>Doctors</span>
+          </button>
+
+          <button
+            class="btn btn-outline"
+            id="bookApptModalBtn"
+            title="Book Doctor Consultation"
+          >
+            <i data-lucide="calendar" style="width: 15px; height: 15px"></i>
+            <span>Book OPD</span>
+          </button>
+
+          <!-- Logged-in Patient Profile & Logout -->
+          <div style="display: flex; align-items: center; gap: 8px">
+            <button
+              class="btn btn-outline"
+              id="myReportsBtn"
+              title="View My Uploaded Reports"
+            >
+              <i
+                data-lucide="folder"
+                style="width: 14px; height: 14px; color: #0284c7"
+              ></i>
+              <span>My Reports</span>
+            </button>
+            <div
+              class="user-profile-badge"
+              id="userBadgeElem"
+              title="Active Patient Account"
+            >
+              <i
+                data-lucide="user-check"
+                style="width: 14px; height: 14px; color: #059669"
+              ></i>
+              <span id="userNameDisplay">Patient</span>
+              <span class="user-gmail-tag">@gmail.com</span>
+            </div>
+            <button
+              class="btn btn-outline"
+              id="logoutBtn"
+              title="Sign Out & Lock Portal"
+            >
+              <i
+                data-lucide="log-out"
+                style="width: 14px; height: 14px; color: #ef4444"
+              ></i>
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Chat Messages Viewport -->
+      <main class="chat-viewport" id="chatViewport">
+        <!-- Welcome Hero Card with Quick Prompt Chips -->
+        <div class="welcome-card" id="welcomeCard">
+          <div class="welcome-avatar">
+            <i data-lucide="bot"></i>
+          </div>
+          <h2 id="welcomeGreeting">Namaste! I am Aura</h2>
+          <p>
+            Your CareWell Hospital AI Receptionist & Health Assistant. I can
+            assist you with doctor schedules, ICU & ward visiting hours,
+            department locations, OPD bookings, and
+            <strong>detailed AI analysis of your medical lab reports</strong>.
+          </p>
+
+          <div class="quick-chips-grid">
+            <button
+              class="chip-btn"
+              data-query="who and all doctor working for general physician"
+            >
+              👨‍⚕️ Who and all doctor working for general physician?
+            </button>
+            <button
+              class="chip-btn"
+              data-query="what are the timings for ICU visiting patients"
+            >
+              ⏰ What are the timings for ICU visiting patients?
+            </button>
+            <button class="chip-btn" id="chipUploadReport">
+              📄 Upload & analyze blood test / medical report
+            </button>
+            <button
+              class="chip-btn"
+              data-query="what are the general ward visiting hours and rules?"
+            >
+              🏥 General ward visiting hours
+            </button>
+            <button
+              class="chip-btn"
+              data-query="what is the emergency helpline and ambulance phone number?"
+            >
+              🚨 Emergency & Ambulance contact
+            </button>
+            <button
+              class="chip-btn"
+              data-query="which cashless health insurance and TPAs do you accept?"
+            >
+              💳 Accepted cashless insurance
+            </button>
+            <button
+              class="chip-btn"
+              data-query="what are the 24 hour pharmacy and pathology lab timings?"
+            >
+              💊 24/7 Pharmacy & Lab timings
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages will be injected here dynamically -->
+      </main>
+
+      <!-- Bottom Input Controls -->
+      <footer class="chat-footer">
+        <div class="input-container">
+          <!-- Attachment / Report Upload Button -->
+          <button
+            class="icon-btn"
+            id="attachFileBtn"
+            title="Upload Medical Report (PDF, Image, Text)"
+          >
+            <i data-lucide="paperclip" style="width: 18px; height: 18px"></i>
+          </button>
+          <button
+            class="icon-btn"
+            id="voiceBtn"
+            title="Speak Query (Microphone)"
+          >
+            <i
+              data-lucide="mic"
+              id="micIcon"
+              style="width: 18px; height: 18px"
+            ></i>
+          </button>
+          <input
+            type="text"
+            id="chatInput"
+            class="chat-input"
+            placeholder="Ask about doctors, ICU timings, or upload a medical report..."
+            autocomplete="off"
+          />
+          <button class="send-btn" id="sendBtn" title="Send Message">
+            <i data-lucide="send" style="width: 16px; height: 16px"></i>
+          </button>
+        </div>
+        <div class="footer-disclaimer">
+          ⚠️ CareWell AI Receptionist provides hospital info. In case of acute
+          medical emergencies, immediately call our 24/7 Trauma Desk at
+          <a href="tel:+919876543210">+91-98765-43210</a> or Dial
+          <strong>108</strong>.
+        </div>
+      </footer>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- 1. Medical Report Analyzer Modal -->
+    <div class="modal-overlay" id="reportModal">
+      <div class="modal-dialog" style="max-width: 680px">
+        <div
+          class="modal-header"
+          style="background: #f0fdf4; border-bottom: 1px solid #bbf7d0"
+        >
+          <h3
+            style="color: #166534; display: flex; align-items: center; gap: 8px"
+          >
+            <i data-lucide="file-check-2" style="width: 18px; height: 18px"></i>
+            Medical Lab Report AI Analyzer
+          </h3>
+          <button class="modal-close" data-close="reportModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: #475569; margin-bottom: 14px">
+            Upload your blood test, diagnostic pathology report, or vitals (PDF,
+            PNG, JPG, or TXT). Our Clinical AI will parse parameters, compare
+            against normal reference ranges, and explain findings in clear plain
+            English.
+          </p>
+
+          <!-- Dropzone -->
+          <div class="file-dropzone" id="reportDropzone">
+            <div class="file-dropzone-icon">
+              <i data-lucide="upload-cloud"></i>
+            </div>
+            <div
+              style="font-weight: 600; color: #0f172a; margin-bottom: 4px"
+              id="dropzoneText"
+            >
+              Click or drag & drop medical report here
+            </div>
+            <div style="font-size: 11.5px; color: #64748b">
+              Supports PDF, JPG, PNG, and TXT files (Max 10 MB)
+            </div>
+            <input
+              type="file"
+              id="reportFileInput"
+              accept=".pdf,.png,.jpg,.jpeg,.txt"
+              style="display: none"
+            />
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+            "
+          >
+            <div
+              id="selectedFileLabel"
+              style="font-size: 12.5px; color: #0284c7; font-weight: 600"
+            ></div>
+            <button class="btn btn-primary" id="startAnalyzeBtn" disabled>
+              <i data-lucide="sparkles" style="width: 14px; height: 14px"></i>
+              Analyze Report
+            </button>
+          </div>
+
+          <!-- Loading spinner -->
+          <div
+            id="reportLoadingIndicator"
+            style="display: none; text-align: center; padding: 24px"
+          >
+            <div
+              class="pulse-dot"
+              style="
+                width: 16px;
+                height: 16px;
+                margin: 0 auto 12px;
+                background: #0284c7;
+              "
+            ></div>
+            <div style="font-weight: 600; color: #0f172a; font-size: 14px">
+              Analyzing Medical Parameters...
+            </div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 4px">
+              Extracting biomarkers & checking reference intervals with Clinical
+              AI
+            </div>
+          </div>
+
+          <!-- Analysis Results Container -->
+          <div
+            id="reportAnalysisResult"
+            style="display: none"
+            class="report-result-box"
+          >
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. My Reports History Modal -->
+    <div class="modal-overlay" id="myReportsModal">
+      <div class="modal-dialog" style="max-width: 600px">
+        <div class="modal-header">
+          <h3 style="display: flex; align-items: center; gap: 8px">
+            <i
+              data-lucide="folder-clock"
+              style="width: 18px; height: 18px; color: #0284c7"
+            ></i>
+            My Uploaded Medical Reports
+          </h3>
+          <button class="modal-close" data-close="myReportsModal">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div
+            id="reportsHistoryList"
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              max-height: 420px;
+              overflow-y: auto;
+            "
+          >
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Emergency Modal -->
+    <div class="modal-overlay" id="emergencyModal">
+      <div class="modal-dialog">
+        <div
+          class="modal-header"
+          style="background: #fff1f2; border-bottom: 1px solid #fecdd3"
+        >
+          <h3
+            style="color: #be123c; display: flex; align-items: center; gap: 8px"
+          >
+            <i
+              data-lucide="alert-triangle"
+              style="width: 18px; height: 18px"
+            ></i>
+            CareWell 24/7 Emergency Contacts
+          </h3>
+          <button class="modal-close" data-close="emergencyModal">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: #475569; margin-bottom: 16px">
+            Level-1 Emergency & Trauma Care is accessible 24 hours a day at
+            <strong>Ground Floor, Wing E</strong> with dedicated ambulance ramp.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div
+              style="
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 10px;
+                padding: 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <div
+                  style="font-weight: 700; color: #991b1b; font-size: 13.5px"
+                >
+                  24/7 Trauma & Resuscitation
+                </div>
+                <div style="font-size: 11.5px; color: #b91c1c">
+                  Direct ER Triage Desk
+                </div>
+              </div>
+              <a
+                href="tel:+919876543210"
+                class="btn btn-emergency"
+                style="text-decoration: none"
+                >+91-98765-43210</a
+              >
+            </div>
+
+            <div
+              style="
+                background: #f0fdf4;
+                border: 1px solid #bbf7d0;
+                border-radius: 10px;
+                padding: 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <div
+                  style="font-weight: 700; color: #166534; font-size: 13.5px"
+                >
+                  Rapid Ambulance Dispatch
+                </div>
+                <div style="font-size: 11.5px; color: #15803d">
+                  GPS-Tracked ICU On Wheels
+                </div>
+              </div>
+              <a
+                href="tel:108"
+                class="btn btn-primary"
+                style="background: #16a34a; text-decoration: none"
+                >Dial 108 / Ext. 99</a
+              >
+            </div>
+
+            <div
+              style="
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <div
+                  style="font-weight: 700; color: #0f172a; font-size: 13.5px"
+                >
+                  24/7 Blood Bank & Pharmacy
+                </div>
+                <div style="font-size: 11.5px; color: #64748b">
+                  Ground Floor / 1st Floor Wing C
+                </div>
+              </div>
+              <span style="font-weight: 600; font-size: 12.5px; color: #0284c7"
+                >Ext. 109 / 112</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Doctors Directory Modal -->
+    <div class="modal-overlay" id="doctorsModal">
+      <div class="modal-dialog" style="max-width: 680px">
+        <div class="modal-header">
+          <h3 style="display: flex; align-items: center; gap: 8px">
+            <i
+              data-lucide="users"
+              style="width: 18px; height: 18px; color: #0284c7"
+            ></i>
+            Hospital Doctors Directory
+          </h3>
+          <button class="modal-close" data-close="doctorsModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="margin-bottom: 14px">
+            <input
+              type="text"
+              id="docSearchInput"
+              class="form-control"
+              placeholder="Search doctor by name, department, or specialization..."
+            />
+          </div>
+          <div
+            id="modalDoctorsList"
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              max-height: 420px;
+              overflow-y: auto;
+            "
+          >
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Book Appointment Modal -->
+    <div class="modal-overlay" id="appointmentModal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 style="display: flex; align-items: center; gap: 8px">
+            <i
+              data-lucide="calendar"
+              style="width: 18px; height: 18px; color: #0284c7"
+            ></i>
+            Book OPD Consultation
+          </h3>
+          <button class="modal-close" data-close="appointmentModal">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="appointmentForm">
+            <div class="form-group">
+              <label>Patient Full Name *</label>
+              <input
+                type="text"
+                id="apptPatientName"
+                class="form-control"
+                placeholder="e.g. Ramesh Patel"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Patient Mobile Number *</label>
+              <input
+                type="tel"
+                id="apptPatientPhone"
+                class="form-control"
+                placeholder="e.g. 9876543210"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Select Doctor *</label>
+              <select id="apptDoctorSelect" class="form-control" required>
+                <option value="">-- Choose Doctor --</option>
+              </select>
+            </div>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
+            >
+              <div class="form-group">
+                <label>Preferred Date *</label>
+                <input
+                  type="date"
+                  id="apptDate"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Preferred Time Slot *</label>
+                <select id="apptTime" class="form-control" required>
+                  <option value="10:00 AM">10:00 AM (Morning)</option>
+                  <option value="11:30 AM">11:30 AM (Morning)</option>
+                  <option value="02:00 PM">02:00 PM (Afternoon)</option>
+                  <option value="05:30 PM">05:30 PM (Evening)</option>
+                  <option value="07:00 PM">07:00 PM (Evening)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Reason / Symptoms (Optional)</label>
+              <input
+                type="text"
+                id="apptReason"
+                class="form-control"
+                placeholder="e.g. Fever, routine health checkup"
+              />
+            </div>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              style="
+                width: 100%;
+                justify-content: center;
+                padding: 10px;
+                margin-top: 8px;
+              "
+            >
+              Confirm Appointment
+            </button>
+          </form>
+          <div
+            id="apptSuccessMessage"
+            style="
+              display: none;
+              margin-top: 14px;
+              background: #ecfdf5;
+              border: 1px solid #a7f3d0;
+              padding: 12px;
+              border-radius: 8px;
+              color: #065f46;
+              font-size: 13px;
+            "
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
