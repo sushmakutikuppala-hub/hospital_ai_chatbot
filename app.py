@@ -27,19 +27,31 @@ from database.db import (
     get_user_medical_reports
 )
 from database.seed_data import seed_database
-from rag.retriever import retriever_instance
+from rag.retriever import HospitalKnowledgeRetriever
 from rag.generator import generate_llm_response
 from reports.analyzer import analyze_medical_report
 
 # Lifespan event for automatic database initialization and seeding
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
-    seed_database()
-    retriever_instance.reload()
-    print("CareWell Hospital AI Receptionist & Clinical System Initialized.")
-    yield
+    global retriever_instance
 
+    # Step 1: Create database and tables
+    init_db()
+    print("Database initialized.")
+
+    # Step 2: Insert initial hospital data
+    seed_database()
+    print("Database seeded.")
+
+    # Step 3: Initialize RAG retriever AFTER database setup
+    retriever_instance = HospitalKnowledgeRetriever()
+    print("RAG retriever initialized.")
+
+    print("CareWell Hospital AI Receptionist & Clinical System Initialized.")
+
+    yield
+    
 app = FastAPI(
     title="CareWell Hospital AI Receptionist & Health Portal",
     description="Full-stack AI Healthcare System with RAG, Gmail-Only Authentication Gate, and Medical Report Analysis",
